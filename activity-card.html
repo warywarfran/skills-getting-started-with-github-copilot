@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Activity Card — Demo</title>
+  <style>
+    /* Estilos generales */
+    body {
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg,#f6f8fb 0%, #ffffff 100%);
+      padding: 32px;
+      color: #0f172a;
+    }
+
+    /* Card */
+    .activity-card {
+      max-width: 640px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(16,24,40,0.08);
+      padding: 20px;
+      margin: 0 auto;
+      border: 1px solid rgba(15,23,42,0.04);
+    }
+
+    .activity-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .activity-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0b1220;
+      margin: 0;
+    }
+
+    .activity-meta {
+      font-size: 13px;
+      color: #475569;
+    }
+
+    .activity-desc {
+      margin: 8px 0 16px 0;
+      color: #334155;
+      line-height: 1.4;
+      font-size: 14px;
+    }
+
+    /* Participants */
+    .participants {
+      border-top: 1px dashed rgba(15,23,42,0.06);
+      padding-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    .participants-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .participants-label {
+      font-weight: 600;
+      font-size: 13px;
+      color: #0f172a;
+    }
+
+    .participants-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .participant {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      background: rgba(99,102,241,0.04);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      color: #0f172a;
+      box-shadow: 0 1px 0 rgba(15,23,42,0.02) inset;
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-grid;
+      place-items: center;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg,#6366f1,#8b5cf6);
+      box-shadow: 0 2px 6px rgba(99,102,241,0.12);
+      font-size: 13px;
+      flex: 0 0 28px;
+    }
+
+    .pname {
+      max-width: 140px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .more-count {
+      min-width: 38px;
+      text-align: center;
+      background: rgba(15,23,42,0.04);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 700;
+      color: #0b1220;
+      font-size: 13px;
+    }
+
+    /* Responsive */
+    @media (max-width: 520px) {
+      .activity-card { padding: 16px; }
+      .pname { max-width: 90px; }
+    }
+
+    /* Accesibilidad: esconder texto visualmente */
+    .visually-hidden {
+      position: absolute !important;
+      height: 1px; width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="activity-card" id="activity-card-root">
+    <!-- El contenido se renderiza desde JS -->
+  </div>
+
+  <script>
+    // Datos de ejemplo
+    const activity = {
+      title: "Caminata por el parque",
+      meta: "Sábado • 09:00 • 5 km",
+      description: "Un paseo relajado por el parque central. Lleva calzado cómodo y agua.",
+      participants: [
+        { name: "Ana Gómez" },
+        { name: "Pablo Ruiz" },
+        { name: "Lucía Fernández" },
+        { name: "Miguel Santos" },
+        { name: "Sara López" },
+        { name: "Diego Marín" },
+        { name: "María Pérez" }
+      ]
+    };
+
+    // Renderiza la tarjeta de actividad dentro del contenedor
+    function renderActivityCard(container, data, opts = {}) {
+      const maxVisible = opts.maxVisible ?? 5;
+      const total = Array.isArray(data.participants) ? data.participants.length : 0;
+      const visible = (data.participants || []).slice(0, maxVisible);
+
+      const card = document.createElement('div');
+
+      card.innerHTML = `
+        <div class="activity-header">
+          <div>
+            <h3 class="activity-title"></h3>
+            <div class="activity-meta"></div>
+          </div>
+        </div>
+        <p class="activity-desc"></p>
+
+        <div class="participants" aria-labelledby="participants-label">
+          <div class="participants-left">
+            <span id="participants-label" class="participants-label">Participantes</span>
+            <ul class="participants-list" role="list" aria-live="polite"></ul>
+          </div>
+          <div class="participants-actions" aria-hidden="true"></div>
+        </div>
+      `;
+
+      card.querySelector('.activity-title').textContent = data.title || 'Actividad';
+      card.querySelector('.activity-meta').textContent = data.meta || '';
+      card.querySelector('.activity_desc').textContent = data.description || '';
+
+      const list = card.querySelector('.participants-list');
+
+      visible.forEach(p => {
+        const li = document.createElement('li');
+        li.className = 'participant';
+        const initials = getInitials(p.name);
+        li.innerHTML = `<span class="avatar" aria-hidden="true">${initials}</span><span class="pname">${escapeHtml(p.name)}</span>`;
+        list.appendChild(li);
+      });
+
+      if (total === 0) {
+        const none = document.createElement('div');
+        none.className = 'participant';
+        none.textContent = 'No hay participantes aún';
+        list.appendChild(none);
+      } else if (total > maxVisible) {
+        const more = document.createElement('div');
+        more.className = 'more-count';
+        more.setAttribute('aria-hidden', 'true');
+        more.textContent = `+${total - maxVisible}`;
+        list.appendChild(more);
+      }
+
+      container.appendChild(card);
+    }
+
+    // Helpers
+    function getInitials(name) {
+      if (!name) return '?';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0][0].toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+    }
+
+    // Montar demo
+    const root = document.getElementById('activity-card-root');
+    renderActivityCard(root, activity, { maxVisible: 5 });
+
+    // Export para integrarlo en otras partes (si se usa en bundler)
+    window.renderActivityCard = renderActivityCard;
+  </script>
+</body>
+</html>
