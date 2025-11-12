@@ -1,0 +1,40 @@
+# Añadir nuevas actividades (2 deportivas, 2 artísticas, 2 intelectuales)
+# Se usa .update() para no sobrescribir la estructura existente si ya existe `activities`.
+activities.update({
+    "basketball": {
+        "name": "Basketball",
+        "participants": [],
+        "max_participants": 20,
+        "description": "Partidos y entrenamientos de baloncesto."
+    },
+    "swimming": {
+        "name": "Swimming",
+        "participants": [],
+        "max_participants": 30,
+        "description": "Clases y práctica de natación."
+    },
+    "painting": {
+        "name": "Painting",
+        "participants": [],
+        "max_participants": 15,
+        "description": "Taller de pintura y técnicas artísticas."
+    },
+    "theater": {
+        "name": "Theater",
+        "participants": [],
+        "max_participants": 25,
+        "description": "Grupo de teatro y montaje de obras."
+    },
+    "chess": {
+        "name": "Chess Club",
+        "participants": [],
+        "max_participants": 30,
+        "description": "Club de ajedrez: partidas, torneos y enseñanza."
+    },
+    "robotics": {
+        "name": "Robotics",
+        "participants": [],
+        "max_participants": 20,
+        "description": "Club de robótica y retos tecnológicos."
+    }
+})
