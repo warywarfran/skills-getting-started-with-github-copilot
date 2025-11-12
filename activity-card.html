@@ -127,6 +127,33 @@
       font-size: 13px;
     }
 
+    .participants-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #475569;
+      font-size: 13px;
+      min-width: 56px;
+      justify-content: flex-end;
+    }
+
+    .participant.empty {
+      background: transparent;
+      padding: 0;
+      color: #64748b;
+      font-style: italic;
+      box-shadow: none;
+    }
+
+    .total-badge {
+      background: rgba(99,102,241,0.06);
+      color: #3730a3;
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
     /* Responsive */
     @media (max-width: 520px) {
       .activity-card { padding: 16px; }
@@ -165,60 +192,80 @@
       ]
     };
 
-    // Renderiza la tarjeta de actividad dentro del contenedor
+    // Renderiza la tarjeta de actividad dentro del contenedor (reemplaza contenido)
     function renderActivityCard(container, data, opts = {}) {
       const maxVisible = opts.maxVisible ?? 5;
-      const total = Array.isArray(data.participants) ? data.participants.length : 0;
-      const visible = (data.participants || []).slice(0, maxVisible);
+      const participants = Array.isArray(data.participants) ? data.participants : [];
+      const total = participants.length;
+      const visible = participants.slice(0, maxVisible);
 
-      const card = document.createElement('div');
-
-      card.innerHTML = `
-        <div class="activity-header">
+      // Limpiar y usar el contenedor raíz directamente
+      container.innerHTML = `
+        <header class="activity-header" role="group" aria-labelledby="activity-title">
           <div>
-            <h3 class="activity-title"></h3>
+            <h3 id="activity-title" class="activity-title"></h3>
             <div class="activity-meta"></div>
           </div>
-        </div>
+        </header>
+
         <p class="activity-desc"></p>
 
-        <div class="participants" aria-labelledby="participants-label">
+        <section class="participants" aria-labelledby="participants-label">
           <div class="participants-left">
             <span id="participants-label" class="participants-label">Participantes</span>
             <ul class="participants-list" role="list" aria-live="polite"></ul>
           </div>
-          <div class="participants-actions" aria-hidden="true"></div>
-        </div>
+          <div class="participants-actions" aria-hidden="false"></div>
+        </section>
       `;
 
-      card.querySelector('.activity-title').textContent = data.title || 'Actividad';
-      card.querySelector('.activity-meta').textContent = data.meta || '';
-      card.querySelector('.activity_desc').textContent = data.description || '';
+      // Rellenar textos
+      container.querySelector('.activity-title').textContent = data.title || 'Actividad';
+      container.querySelector('.activity-meta').textContent = data.meta || '';
+      container.querySelector('.activity-desc').textContent = data.description || '';
 
-      const list = card.querySelector('.participants-list');
-
-      visible.forEach(p => {
-        const li = document.createElement('li');
-        li.className = 'participant';
-        const initials = getInitials(p.name);
-        li.innerHTML = `<span class="avatar" aria-hidden="true">${initials}</span><span class="pname">${escapeHtml(p.name)}</span>`;
-        list.appendChild(li);
-      });
+      const list = container.querySelector('.participants-list');
+      const actions = container.querySelector('.participants-actions');
 
       if (total === 0) {
-        const none = document.createElement('div');
-        none.className = 'participant';
-        none.textContent = 'No hay participantes aún';
-        list.appendChild(none);
-      } else if (total > maxVisible) {
-        const more = document.createElement('div');
-        more.className = 'more-count';
-        more.setAttribute('aria-hidden', 'true');
-        more.textContent = `+${total - maxVisible}`;
-        list.appendChild(more);
+        const li = document.createElement('li');
+        li.className = 'participant empty';
+        li.textContent = 'No hay participantes aún';
+        list.appendChild(li);
+      } else {
+        visible.forEach(p => {
+          const li = document.createElement('li');
+          li.className = 'participant';
+          const initials = getInitials(p.name);
+          li.innerHTML = `<span class="avatar" aria-hidden="true">${initials}</span><span class="pname">${escapeHtml(p.name)}</span>`;
+          list.appendChild(li);
+        });
+
+        if (total > maxVisible) {
+          const more = document.createElement('li');
+          more.className = 'participant';
+          more.innerHTML = `<span class="avatar" aria-hidden="true">+${total - maxVisible}</span><span class="pname">y ${total - maxVisible} más</span>`;
+          list.appendChild(more);
+        }
       }
 
-      container.appendChild(card);
+      // Acción/indicador en la esquina derecha: total sutil y "Ver todos" opcional
+      const totalBadge = document.createElement('div');
+      totalBadge.className = 'total-badge';
+      totalBadge.textContent = `${total} inscritos`;
+      actions.appendChild(totalBadge);
+
+      // Opción: si se quiere un botón "Ver todos" (solo visual)
+      const seeAll = document.createElement('button');
+      seeAll.type = 'button';
+      seeAll.className = 'see-all';
+      seeAll.style = 'background:transparent;border:0;color:#4b5563;cursor:pointer;font-size:13px;padding:6px';
+      seeAll.textContent = 'Ver todos';
+      seeAll.addEventListener('click', () => {
+        // simple toggle: mostrar alerta con nombres (puedes reemplazar por modal)
+        alert('Participantes:\\n' + participants.map(p => p.name).join('\\n'));
+      });
+      actions.appendChild(seeAll);
     }
 
     // Helpers
